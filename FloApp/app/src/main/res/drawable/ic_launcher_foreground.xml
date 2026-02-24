@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Flo app launcher foreground — a stylized plant/leaf representing crop growth -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer safe zone is 72dp centred, inner path draws the "Flo" leaf -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,18 C54,18 30,36 30,54 C30,67.25 40.75,78 54,78 C67.25,78 78,67.25 78,54 C78,36 54,18 54,18 Z" />
+    <!-- Stem -->
+    <path
+        android:fillColor="#A5D6A7"
+        android:strokeColor="#A5D6A7"
+        android:strokeWidth="3"
+        android:pathData="M54,78 L54,92" />
+</vector>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Exclude Room database (encrypted with SQLCipher) -->
+    <exclude domain="database" path="flo_database" />
+    <!-- Exclude shared preferences with sensitive keys -->
+    <exclude domain="sharedpref" path="flo_prefs.xml" />
+</full-backup-content>
