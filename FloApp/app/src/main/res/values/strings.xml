@@ -1,4 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  DEFAULT (English) strings.
+  These are the fallback values used when no language-specific override is found.
+  App name and language list labels are intentionally NOT translated anywhere.
+-->
 <resources>
-    <string name="app_name">Flo</string>
+    <string name="app_name">Ani.PH</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_language_section">Language</string>
+    <string name="settings_back">Back</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_weather">Weather</string>
+    <string name="nav_resibo">Receipt</string>
+    <string name="nav_ai">AI Assistant</string>
+
+    <!-- Home screen – FAB -->
+    <string name="fab_add_crop">New Crop</string>
+
+    <!-- Home screen – empty state -->
+    <string name="empty_title">No crops yet</string>
+    <string name="empty_subtitle">Tap the button below to add your first crop.</string>
+    <string name="empty_button">Plant now</string>
+
+    <!-- Home screen – crop card -->
+    <string name="crop_card_area_suffix"> ha</string>
+    <string name="crop_card_content_desc">View crop</string>
 </resources>

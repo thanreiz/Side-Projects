@@ -36,7 +36,7 @@ fun LoggingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("I-log ang Gawain", style = MaterialTheme.typography.titleLarge) },
+                title = { Text("Log Activity", style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, "Back") }
                 },
@@ -53,12 +53,10 @@ fun LoggingScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            Text(
-                "Anong ginawa mo ngayon?",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Text("What did you do today?", style = MaterialTheme.typography.bodyMedium,
+            Text("What did you do today?", style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(4.dp))
+            Text("Select the activity you performed.", style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
             Spacer(Modifier.height(24.dp))
 
@@ -93,7 +91,7 @@ fun LoggingScreen(
             ) {
                 Icon(Icons.Filled.Check, null, modifier = Modifier.size(28.dp))
                 Spacer(Modifier.width(12.dp))
-                Text("I-save ang Log", style = MaterialTheme.typography.titleMedium)
+                Text("Save Log", style = MaterialTheme.typography.titleMedium)
             }
         }
     }
@@ -104,16 +102,15 @@ fun LoggingScreen(
             icon = { Icon(Icons.Filled.CheckCircle, null, tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(48.dp)) },
             title = {
-                Text("Na-log na!", style = MaterialTheme.typography.headlineSmall,
+                Text("Logged!", style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
             },
             text = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(selectedLogType?.displayNameTl ?: "", style = MaterialTheme.typography.titleMedium,
+                    Text(selectedLogType?.displayNameEn ?: "", style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary)
-                    Text(selectedLogType?.displayNameEn ?: "", style = MaterialTheme.typography.bodyMedium)
                     Spacer(Modifier.height(8.dp))
-                    Text("Naka-save na ang iyong log. Ide-sync ito kapag may koneksyon.",
+                    Text("Your log has been saved and will sync when connected.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         textAlign = TextAlign.Center)
@@ -124,7 +121,7 @@ fun LoggingScreen(
                     showConfirmation = false
                     selectedLogType = null
                     onBack()
-                }) { Text("Tapos na", style = MaterialTheme.typography.bodyLarge) }
+                }) { Text("Done", style = MaterialTheme.typography.bodyLarge) }
             }
         )
     }
@@ -161,7 +158,7 @@ private fun LogTypeCard(logType: LogType, isSelected: Boolean, onClick: () -> Un
                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
             Spacer(Modifier.height(6.dp))
-            Text(logType.displayNameTl, style = MaterialTheme.typography.labelLarge,
+            Text(logType.displayNameEn, style = MaterialTheme.typography.labelLarge,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                 textAlign = TextAlign.Center,
                 color = if (isSelected) MaterialTheme.colorScheme.primary

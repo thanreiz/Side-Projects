@@ -8,13 +8,11 @@ package com.floapp.agriflo.domain.model
  */
 enum class CropStageType(
     val displayNameEn: String,
-    val displayNameTl: String,
     val defaultDurationDays: Int,
     val recommendedActions: List<String>
 ) {
     LAND_PREPARATION(
         displayNameEn = "Land Preparation",
-        displayNameTl = "Paghahanda ng Lupa",
         defaultDurationDays = 14,
         recommendedActions = listOf(
             "Plow and harrow the field",
@@ -25,7 +23,6 @@ enum class CropStageType(
     ),
     PLANTING(
         displayNameEn = "Planting / Seeding",
-        displayNameTl = "Pagtatanim",
         defaultDurationDays = 7,
         recommendedActions = listOf(
             "Use certified seeds",
@@ -36,7 +33,6 @@ enum class CropStageType(
     ),
     VEGETATIVE_GROWTH(
         displayNameEn = "Vegetative Growth",
-        displayNameTl = "Paglaki (Vegetatibo)",
         defaultDurationDays = 40,
         recommendedActions = listOf(
             "Apply first basal fertilizer (NPK)",
@@ -47,18 +43,16 @@ enum class CropStageType(
     ),
     FERTILIZATION_WINDOW(
         displayNameEn = "Fertilization Window",
-        displayNameTl = "Oras ng Pagpapataba",
         defaultDurationDays = 14,
         recommendedActions = listOf(
             "Apply top-dressing fertilizer",
             "Check weather before applying (avoid rain)",
-            "Photograph receipt for Digital Resibo",
+            "Photograph receipt for Digital Receipt",
             "Record quantity and product used"
         )
     ),
     REPRODUCTIVE(
         displayNameEn = "Reproductive Stage",
-        displayNameTl = "Pagluluwal ng Bunga",
         defaultDurationDays = 30,
         recommendedActions = listOf(
             "Monitor for panicle blast (rice)",
@@ -69,7 +63,6 @@ enum class CropStageType(
     ),
     RIPENING(
         displayNameEn = "Ripening / Maturation",
-        displayNameTl = "Paghinog",
         defaultDurationDays = 15,
         recommendedActions = listOf(
             "Drain field 2 weeks before harvest (rice)",
@@ -80,7 +73,6 @@ enum class CropStageType(
     ),
     HARVEST(
         displayNameEn = "Harvest Ready",
-        displayNameTl = "Handa na ang Ani",
         defaultDurationDays = 7,
         recommendedActions = listOf(
             "Harvest at 20–25% grain moisture",

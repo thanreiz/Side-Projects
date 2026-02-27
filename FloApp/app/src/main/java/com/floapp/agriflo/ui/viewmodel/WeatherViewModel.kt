@@ -30,42 +30,63 @@ class WeatherViewModel @Inject constructor(
     private val fusedClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(app)
 
-    private val _isLoading = MutableStateFlow(false)
+    // ── Loading / error / location state ─────────────────────────────────────
+
+    private val _isLoading      = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _locationError = MutableStateFlow<String?>(null)
+    private val _locationError  = MutableStateFlow<String?>(null)
     val locationError: StateFlow<String?> = _locationError.asStateFlow()
 
-    private val _locationName = MutableStateFlow<String?>(null)
+    private val _locationName   = MutableStateFlow<String?>(null)
     val locationName: StateFlow<String?> = _locationName.asStateFlow()
 
+    // ── 7-Day Forecast (Room Flow — emits immediately from cache) ─────────────
+
     val forecasts: StateFlow<List<WeatherData>> = weatherRepository.get7DayForecast()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val criticalAdvisory: StateFlow<WeatherAdvisory?> = forecasts.map { list ->
         if (list.isEmpty()) null else weatherInterpreter.getMostCriticalAdvisory(list)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    // ── 30-Day Climatology (Room Flow — emits immediately from cache) ─────────
+
+    val climatology: StateFlow<List<WeatherData>> = weatherRepository.getClimatology()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    // ── Init ──────────────────────────────────────────────────────────────────
 
     init {
+        viewModelScope.launch {
+            // Seed mock data immediately so both tabs are never blank.
+            // Real API data will overwrite when the network call in refresh() completes.
+            weatherRepository.seedMockDataIfEmpty()
+        }
         refresh()
     }
 
+    // ── Public API ────────────────────────────────────────────────────────────
+
+    /** Refresh both the 7-day forecast AND the 30-day climatology simultaneously. */
     fun refresh() {
         viewModelScope.launch {
             _isLoading.value = true
             _locationError.value = null
             try {
                 val location = getBestLocation()
-                if (location != null) {
-                    resolveLocationName(location.latitude, location.longitude)
-                    weatherRepository.refreshWeather(location.latitude, location.longitude)
-                } else {
-                    _locationError.value = "Hinihiling ang lokasyon… / Requesting location…"
-                    // Fall back to Manila so the screen isn't empty
-                    weatherRepository.refreshWeather(14.5995, 120.9842)
-                }
+                val lat = location?.latitude  ?: 14.5995   // Fall back to Manila
+                val lon = location?.longitude ?: 120.9842
+
+                if (location != null) resolveLocationName(lat, lon)
+                else _locationError.value = "Using default location (Manila)"
+
+                // Launch both refreshes concurrently — one does NOT block the other
+                launch { weatherRepository.refreshWeather(lat, lon) }
+                launch { weatherRepository.refreshClimatology(lat, lon) }
+
             } catch (e: SecurityException) {
-                _locationError.value = "Location permission required"
+                _locationError.value = "Location permission is required"
             } catch (e: Exception) {
                 _locationError.value = "Network error: ${e.localizedMessage}"
             } finally {
@@ -74,12 +95,12 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
-    // Called by the UI once location permission is granted
     fun onPermissionGranted() = refresh()
+
+    // ── Location helpers ──────────────────────────────────────────────────────
 
     @SuppressLint("MissingPermission")
     private suspend fun getBestLocation(): Location? {
-        // Try last known first (fast)
         val last = suspendCancellableCoroutine<Location?> { cont ->
             fusedClient.lastLocation
                 .addOnSuccessListener { cont.resume(it) }
@@ -87,7 +108,6 @@ class WeatherViewModel @Inject constructor(
         }
         if (last != null) return last
 
-        // Request a fresh single update
         return suspendCancellableCoroutine { cont ->
             val req = LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 0)
                 .setMaxUpdates(1)
@@ -105,11 +125,9 @@ class WeatherViewModel @Inject constructor(
 
     @Suppress("DEPRECATION")
     private fun resolveLocationName(lat: Double, lon: Double) {
-        val app = getApplication<Application>()
         try {
-            val geocoder = Geocoder(app, Locale("fil", "PH"))
-            val addresses = geocoder.getFromLocation(lat, lon, 1)
-            val addr = addresses?.firstOrNull()
+            val geocoder = Geocoder(getApplication(), Locale("fil", "PH"))
+            val addr = geocoder.getFromLocation(lat, lon, 1)?.firstOrNull()
             _locationName.value = listOfNotNull(
                 addr?.subAdminArea ?: addr?.locality,
                 addr?.adminArea

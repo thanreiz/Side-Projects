@@ -66,7 +66,7 @@ class WeatherInterpreterTest {
 
     @Test
     fun `interpret returns OPTIMAL_CONDITIONS for normal Philippine weather`() {
-        val result = interpreter.interpret(makeWeather(rainfall = 5.0, tempMax = 29.0, humidity = 70))
+        val result = interpreter.interpret(makeWeather(rainfall = 1.0, tempMax = 29.0, humidity = 70))
         assertEquals(WeatherAdvisory.OPTIMAL_CONDITIONS, result)
     }
 

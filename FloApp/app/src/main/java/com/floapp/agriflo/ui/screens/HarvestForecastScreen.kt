@@ -63,9 +63,9 @@ fun HarvestForecastScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("📊", style = MaterialTheme.typography.headlineLarge)
                     Spacer(Modifier.height(8.dp))
-                    Text("Walang forecast pa", style = MaterialTheme.typography.titleMedium)
+                    Text("No forecast yet", style = MaterialTheme.typography.titleMedium)
                     Button(onClick = { viewModel.regenerateForecast(cropId) }) {
-                        Text("Gumawa ng Forecast")
+                        Text("Generate Forecast")
                     }
                 }
             }
@@ -93,9 +93,8 @@ fun HarvestForecastScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween) {
                     Column {
-                        Text("$riskEmoji ${f.riskLabel.displayNameTl}",
+                        Text("$riskEmoji ${f.riskLabel.displayNameEn}",
                             style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Text(f.riskLabel.displayNameEn, style = MaterialTheme.typography.bodyMedium)
                     }
                     Text("${(f.riskScore * 100).toInt()}% risk",
                         style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
@@ -103,19 +102,19 @@ fun HarvestForecastScreen(
             }
 
             // Financial summary
-            ForecastMetricCard("🌾 Inaasahang Ani",
+            ForecastMetricCard("🌾 Expected Yield",
                 "${f.projectedYieldKg.toInt()} kg",
                 "Projected Yield")
-            ForecastMetricCard("💰 Inaasahang Kita",
+            ForecastMetricCard("💰 Expected Revenue",
                 phpFormatter.format(f.projectedRevenuePhp),
                 "Projected Revenue")
-            ForecastMetricCard("📦 Gastos sa Input",
+            ForecastMetricCard("📦 Input Cost",
                 phpFormatter.format(f.projectedCostPhp),
-                "Input Cost")
+                "Total Input Cost")
             ForecastMetricCard(
-                if (f.netProfitPhp >= 0) "✅ Tubo (Net Profit)" else "⚠️ Pagkalugi (Loss)",
+                if (f.netProfitPhp >= 0) "✅ Net Profit" else "⚠️ Net Loss",
                 phpFormatter.format(f.netProfitPhp),
-                "Net Profit",
+                "Net Profit / Loss",
                 highlight = true,
                 containerColor = if (f.netProfitPhp >= 0) FloGreen200 else FloRed100
             )
@@ -123,10 +122,8 @@ fun HarvestForecastScreen(
             // Assumptions
             ElevatedCard(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Batayan ng Forecast", style = MaterialTheme.typography.titleMedium,
+                    Text("Forecast Assumptions", style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold)
-                    Text("Forecast Assumptions", style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     Divider()
                     AssumptionRow("Land Area", "${f.assumptions.landAreaHa} ha")
                     AssumptionRow("Crop Type", f.assumptions.cropType.displayName)

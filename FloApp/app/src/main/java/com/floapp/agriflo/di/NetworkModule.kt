@@ -2,6 +2,7 @@ package com.floapp.agriflo.di
 
 import com.floapp.agriflo.BuildConfig
 import com.floapp.agriflo.data.remote.api.GeminiApiService
+import com.floapp.agriflo.data.remote.api.HistoricalWeatherApiService
 import com.floapp.agriflo.data.remote.api.WeatherApiService
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -69,6 +70,22 @@ object NetworkModule {
     @Singleton
     fun provideWeatherApiService(@Named("weather") retrofit: Retrofit): WeatherApiService =
         retrofit.create(WeatherApiService::class.java)
+
+    @Provides
+    @Singleton
+    @Named("weather_archive")
+    fun provideWeatherArchiveRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://archive-api.open-meteo.com/v1/")
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideHistoricalWeatherApiService(
+        @Named("weather_archive") retrofit: Retrofit
+    ): HistoricalWeatherApiService = retrofit.create(HistoricalWeatherApiService::class.java)
 
     @Provides
     @Singleton

@@ -20,29 +20,57 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.floapp.agriflo.ui.viewmodel.HomeViewModel
 import com.floapp.agriflo.domain.model.Crop
+import com.floapp.agriflo.ui.theme.AppStrings
+import com.floapp.agriflo.ui.theme.LocalLanguage
+import com.floapp.agriflo.ui.theme.strings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onCropSelected: (String) -> Unit,
     onAddCrop: () -> Unit,
+    onOpenSettings: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val crops by viewModel.crops.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
+    // Single source of truth – every string comes from here
+    val language = LocalLanguage.current
+    val str = language.strings()
+
+    // no inline dropdown state needed — Settings is a separate screen
+
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
+            TopAppBar(
+                // 🌾 rice-field emoji — upper left
+                navigationIcon = {
+                    Text(
+                        text = "🌾",
+                        style = MaterialTheme.typography.headlineMedium,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                },
                 title = {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🌾 Flo", style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold)
-                        Text("Agri-Flo", style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "Ani.PH",          // App name – never translated
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                // ⚙️ settings icon — navigates to Settings screen
+                actions = {
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = str.settingsContentDesc
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             )
@@ -50,37 +78,51 @@ fun HomeScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddCrop,
-                icon = { Icon(Icons.Filled.Add, "Add crop") },
-                text = { Text("Bagong Pananim", style = MaterialTheme.typography.bodyLarge) },
+                icon = { Icon(Icons.Filled.Add, str.fabAddCrop) },
+                text = { Text(str.fabAddCrop, style = MaterialTheme.typography.bodyLarge) },
                 containerColor = MaterialTheme.colorScheme.primary
             )
         }
     ) { paddingValues ->
-        if (isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else if (crops.isEmpty()) {
-            EmptyCropsPlaceholder(modifier = Modifier.padding(paddingValues), onAddCrop = onAddCrop)
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(crops) { crop ->
-                    CropCard(crop = crop, onClick = { onCropSelected(crop.id) })
+        when {
+            isLoading -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-                item { Spacer(Modifier.height(80.dp)) } // FAB clearance
+            }
+            crops.isEmpty() -> {
+                EmptyCropsPlaceholder(
+                    modifier = Modifier.padding(paddingValues),
+                    onAddCrop = onAddCrop,
+                    str = str
+                )
+            }
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(crops) { crop ->
+                        CropCard(crop = crop, str = str, onClick = { onCropSelected(crop.id) })
+                    }
+                    item { Spacer(Modifier.height(80.dp)) } // FAB clearance
+                }
             }
         }
     }
 }
 
+// ─── Empty state ──────────────────────────────────────────────────────────────
+
 @Composable
-private fun EmptyCropsPlaceholder(modifier: Modifier = Modifier, onAddCrop: () -> Unit) {
+private fun EmptyCropsPlaceholder(
+    modifier: Modifier = Modifier,
+    onAddCrop: () -> Unit,
+    str: AppStrings
+) {
     Column(
         modifier = modifier.fillMaxSize().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -88,28 +130,46 @@ private fun EmptyCropsPlaceholder(modifier: Modifier = Modifier, onAddCrop: () -
     ) {
         Text("🌱", style = MaterialTheme.typography.headlineLarge)
         Spacer(Modifier.height(16.dp))
-        Text("Walang pananim pa", style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold)
-        Text("No crops yet", style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+        Text(
+            str.emptyTitle,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            str.emptySubtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
         Spacer(Modifier.height(24.dp))
-        Button(onClick = onAddCrop, modifier = Modifier.height(56.dp).fillMaxWidth()) {
-            Icon(Icons.Filled.Add, null)
+        Button(
+            onClick = onAddCrop,
+            modifier = Modifier
+                .height(56.dp)
+                .fillMaxWidth()
+        ) {
+            Icon(Icons.Filled.Add, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("Magtanim ngayon", style = MaterialTheme.typography.bodyLarge)
+            Text(str.emptyButton, style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
 
+// ─── Crop card ────────────────────────────────────────────────────────────────
+
 @Composable
-private fun CropCard(crop: Crop, onClick: () -> Unit) {
+private fun CropCard(crop: Crop, str: AppStrings, onClick: () -> Unit) {
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -119,18 +179,34 @@ private fun CropCard(crop: Crop, onClick: () -> Unit) {
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Text(crop.cropType.displayName.take(1), style = MaterialTheme.typography.headlineMedium)
+                Text(
+                    crop.cropType.displayName.take(1),
+                    style = MaterialTheme.typography.headlineMedium
+                )
             }
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
-                Text(crop.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(crop.variety, style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-                Text("${crop.landAreaHa} ha", style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary)
+                Text(
+                    crop.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    crop.variety,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+                Text(
+                    "${crop.landAreaHa}${str.cropCardAreaSuffix}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
-            Icon(Icons.Filled.ChevronRight, "View crop",
-                tint = MaterialTheme.colorScheme.primary)
+            Icon(
+                Icons.Filled.ChevronRight,
+                contentDescription = str.cropCardContentDesc,
+                tint = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }

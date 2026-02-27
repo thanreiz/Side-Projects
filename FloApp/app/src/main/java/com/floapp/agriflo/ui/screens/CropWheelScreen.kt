@@ -67,15 +67,11 @@ fun CropWheelScreen(
                     )
                 ) {
                     Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(stage.stageType.displayNameTl, style = MaterialTheme.typography.titleLarge,
+                        Text(stage.stageType.displayNameEn, style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                        Text(stage.stageType.displayNameEn, style = MaterialTheme.typography.bodyMedium)
                         Spacer(Modifier.height(8.dp))
-                        Text("${stage.daysRemainingInStage} araw na natitira",
-                            style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                         Text("${stage.daysRemainingInStage} days remaining",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                            style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                     }
                 }
                 Spacer(Modifier.height(16.dp))
@@ -87,7 +83,7 @@ fun CropWheelScreen(
                 }
 
                 // Recommended actions
-                Text("Mga Inirerekomendang Gawain:", style = MaterialTheme.typography.titleMedium,
+                Text("Recommended Actions:", style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Start))
                 Spacer(Modifier.height(8.dp))
                 stage.recommendedActions.forEach { action ->
@@ -110,7 +106,7 @@ fun CropWheelScreen(
             ) {
                 Icon(Icons.Filled.EditNote, null)
                 Spacer(Modifier.width(8.dp))
-                Text("I-log ang Gawain", style = MaterialTheme.typography.bodyLarge)
+                Text("Log Activity", style = MaterialTheme.typography.bodyLarge)
             }
             Spacer(Modifier.height(12.dp))
             OutlinedButton(

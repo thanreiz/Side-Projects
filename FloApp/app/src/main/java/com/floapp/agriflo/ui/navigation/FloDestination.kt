@@ -19,6 +19,7 @@ sealed class FloDestination(val route: String) {
     object DigitalResibo : FloDestination("digital_resibo")
     object AIAssistant : FloDestination("ai_assistant")
     object AddCrop : FloDestination("add_crop")
+    object Settings : FloDestination("settings")
 }
 
 data class BottomNavItem(

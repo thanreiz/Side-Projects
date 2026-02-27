@@ -7,6 +7,14 @@ import com.floapp.agriflo.sync.SyncManager
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
+/**
+ * Application entry point.
+ *
+ * Language restoration on cold start no longer needs to happen here.
+ * [LanguageRepositoryImpl] is a Hilt singleton; its constructor calls
+ * [LanguagePreferenceManager.loadLanguage()] so the saved language is seeded
+ * into the StateFlow before the first Compose frame is rendered.
+ */
 @HiltAndroidApp
 class FloApplication : Application(), Configuration.Provider {
 

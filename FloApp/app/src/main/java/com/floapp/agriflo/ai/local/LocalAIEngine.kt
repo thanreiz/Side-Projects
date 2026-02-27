@@ -82,39 +82,44 @@ class LocalAIEngine @Inject constructor(
     /**
      * Rule-based agronomic knowledge base for Philippine smallholder farming.
      * Covers the most common farmer queries when the ONNX model is unavailable.
+     * All responses are in English only.
      */
     private fun generateRuleBasedResponse(prompt: String, queryType: AIQueryType): String {
         val lowerPrompt = prompt.lowercase()
         return when {
             lowerPrompt.contains("palay") || lowerPrompt.contains("rice") ->
-                "Para sa palay: Itanim ang NSIC Rc222 o Rc216 variety. Espasyo: 20x20cm. " +
-                "Mag-abono sa loob ng 14 araw pagkatapos magtanim. " +
-                "For rice: Plant certified varieties. Spacing: 20x20cm. Apply basal fertilizer within 14 days of transplanting."
+                "For rice: Plant certified varieties such as NSIC Rc222 or Rc216. " +
+                "Recommended spacing: 20 × 20 cm. Apply basal fertilizer within 14 days of transplanting. " +
+                "Keep water level at 5–7 cm during vegetative stage."
+
             lowerPrompt.contains("fertilizer") || lowerPrompt.contains("abono") ->
-                "Inirerekomenda para sa palay: 14-14-14 NPK sa umpisa, pagkatapos ay Urea (46-0-0) bago mamukadkad. " +
-                "Recommended for rice: Apply 14-14-14 NPK as basal, then Urea (46-0-0) at panicle initiation. " +
-                "Always check weather before applying — avoid rain within 48 hours."
+                "Recommended for rice: Apply 14-14-14 NPK as basal fertilizer, " +
+                "then Urea (46-0-0) at panicle initiation. " +
+                "Always check the weather before applying — avoid applying if rain is expected within 48 hours."
+
             lowerPrompt.contains("pest") || lowerPrompt.contains("peste") ->
-                "Mga karaniwang peste ng palay: stem borer, brown planthopper, leaf folder. " +
-                "Gumamit ng panlaban na kemikal na aprubado ng BPI. " +
-                "Common rice pests: stem borer (pambubutas ng tangkay), BPH (kayumanggi na paruparo). " +
-                "Use BPI-approved insecticides. Best control: maintain water level and remove weeds."
+                "Common rice pests: stem borer, brown planthopper (BPH), and leaf folder. " +
+                "Use BPI-approved insecticides. Best control methods: maintain proper water level and remove weeds regularly. " +
+                "Inspect crops early in the morning for egg masses."
+
             lowerPrompt.contains("harvest") || lowerPrompt.contains("ani") ->
-                "Ani ang palay kapag 80% ng butil ay ginto na. Karaniwang 105–125 araw pagkatapos ng pagtatanim. " +
                 "Harvest rice when 80% of grains are golden. Usually 105–125 days after transplanting. " +
-                "Grain moisture should be 20–25% at harvest for best quality."
+                "Optimal grain moisture at harvest: 20–25% for best quality. " +
+                "Drain the field 2 weeks before harvest to firm the soil."
+
             lowerPrompt.contains("weather") || lowerPrompt.contains("panahon") ->
-                "Pinakamainam na temperatura para sa palay: 25–32°C. Kailangan ng 200mm/buwan ng ulan. " +
-                "Ideal temperature for rice: 25–32°C. Needs about 200mm/month of rainfall. " +
-                "Avoid fertilizer application when rain expected within 24–48 hours."
+                "Ideal temperature for rice: 25–32°C. Requires about 200 mm/month of rainfall. " +
+                "Avoid applying fertilizer when rain is expected within 24–48 hours. " +
+                "Use the Weather tab in Flo to check the 7-day forecast before any field operation."
+
             lowerPrompt.contains("profit") || lowerPrompt.contains("kita") ->
-                "Ang average na kita ng isang magsasaka sa palay ay PHP 15,000–25,000 bawat ektarya kada season. " +
-                "Average net income for rice farming in Philippines: PHP 15,000–25,000/ha per season. " +
-                "Key to profitability: certified seeds, correct fertilizer timing, and timely harvest."
+                "Average net income for rice farming in the Philippines: PHP 15,000–25,000/ha per season. " +
+                "Key factors for profitability: certified seeds, correct fertilizer timing, and timely harvest. " +
+                "Log all receipts in Flo to track your input costs accurately."
+
             else ->
-                "Salamat sa iyong katanungan. Ang Flo AI ay nagtatrabaho para tulungan kayo. " +
-                "Para sa kumplikadong tanong, kumonekta sa internet para sa mas detalyadong sagot. " +
-                "Thank you for your question. For complex queries, please connect to the internet for a more detailed response from our cloud AI. " +
+                "Thank you for your question. For complex queries, please connect to the internet " +
+                "for a more detailed response from Flo Cloud AI. " +
                 "Basic tip: Always log your farming activities in Flo for better harvest predictions."
         }
     }

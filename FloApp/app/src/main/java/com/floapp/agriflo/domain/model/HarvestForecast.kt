@@ -17,10 +17,10 @@ data class HarvestForecast(
     val generatedAt: Long
 )
 
-enum class RiskLabel(val displayNameEn: String, val displayNameTl: String) {
-    LOW("Low Risk", "Mababang Panganib"),
-    MEDIUM("Medium Risk", "Katamtamang Panganib"),
-    HIGH("High Risk", "Mataas na Panganib")
+enum class RiskLabel(val displayNameEn: String) {
+    LOW("Low Risk"),
+    MEDIUM("Medium Risk"),
+    HIGH("High Risk")
 }
 
 /**

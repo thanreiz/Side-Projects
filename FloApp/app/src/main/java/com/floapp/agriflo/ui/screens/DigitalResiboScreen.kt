@@ -35,7 +35,7 @@ fun DigitalResiboScreen(viewModel: DigitalResiboViewModel = hiltViewModel()) {
             ExtendedFloatingActionButton(
                 onClick = { viewModel.startOcrCapture() },
                 icon = { Icon(Icons.Filled.CameraAlt, null) },
-                text = { Text("I-scan ang Resibo", style = MaterialTheme.typography.bodyLarge) }
+                text = { Text("Scan Receipt", style = MaterialTheme.typography.bodyLarge) }
             )
         }
     ) { paddingValues ->
@@ -56,9 +56,9 @@ fun DigitalResiboScreen(viewModel: DigitalResiboViewModel = hiltViewModel()) {
                         modifier = Modifier.size(32.dp))
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text("I-litrato ang iyong resibo ng abono",
+                        Text("Photograph your fertilizer receipt",
                             style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-                        Text("I-generate ang PDF para sa insurance o DA",
+                        Text("Generate a PDF for insurance or DA verification",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                     }
@@ -70,9 +70,7 @@ fun DigitalResiboScreen(viewModel: DigitalResiboViewModel = hiltViewModel()) {
                     Column(Modifier.padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator()
                         Spacer(Modifier.height(12.dp))
-                        Text("Binabasa ang resibo...", style = MaterialTheme.typography.bodyLarge)
-                        Text("Reading receipt with OCR...", style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                        Text("Reading your receipt…", style = MaterialTheme.typography.bodyLarge)
                     }
                 }
             }
@@ -82,8 +80,9 @@ fun DigitalResiboScreen(viewModel: DigitalResiboViewModel = hiltViewModel()) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("🧾", style = MaterialTheme.typography.headlineLarge)
                         Spacer(Modifier.height(8.dp))
-                        Text("Walang resibo pa", style = MaterialTheme.typography.titleMedium)
-                        Text("No receipts yet", style = MaterialTheme.typography.bodyMedium,
+                        Text("No receipts yet", style = MaterialTheme.typography.titleMedium)
+                        Text("Tap \"Scan Receipt\" to photograph your first fertilizer receipt.",
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     }
                 }
@@ -110,14 +109,14 @@ fun DigitalResiboScreen(viewModel: DigitalResiboViewModel = hiltViewModel()) {
                                     modifier = Modifier.fillMaxWidth()) {
                                     Icon(Icons.Filled.PictureAsPdf, null)
                                     Spacer(Modifier.width(8.dp))
-                                    Text("Buksan ang PDF")
+                                     Text("Open PDF")
                                 }
                             } else {
                                 Button(onClick = { viewModel.generatePdf(receipt.id) },
                                     modifier = Modifier.fillMaxWidth()) {
                                     Icon(Icons.Filled.Download, null)
                                     Spacer(Modifier.width(8.dp))
-                                    Text("I-generate ang PDF")
+                                     Text("Generate PDF")
                                 }
                             }
                         }

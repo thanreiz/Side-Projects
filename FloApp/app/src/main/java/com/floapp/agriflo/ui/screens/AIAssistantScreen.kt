@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -26,17 +25,17 @@ data class ChatMessage(val text: String, val isUser: Boolean, val tier: AITier? 
 @Composable
 fun AIAssistantScreen(viewModel: AIAssistantViewModel = hiltViewModel()) {
     var inputText by remember { mutableStateOf("") }
-    val messages by viewModel.messages.collectAsStateWithLifecycle()
+    val messages  by viewModel.messages.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    // Quick ask shortcuts
+    // Quick-ask shortcuts — English only
     val quickQuestions = listOf(
-        "Kailan magtatanim ng palay?" to "When to plant rice?",
-        "Pano mag-abono?" to "How to fertilize?",
-        "Anong peste ito?" to "Identify this pest",
-        "Magkano ang kita ko?" to "What's my profit?"
+        "When should I plant rice?",
+        "How do I fertilize properly?",
+        "How do I identify a pest?",
+        "What is my estimated profit?"
     )
 
     Scaffold(
@@ -53,27 +52,24 @@ fun AIAssistantScreen(viewModel: AIAssistantViewModel = hiltViewModel()) {
                         )
                     }
                 },
-                navigationIcon = { Icon(Icons.Filled.SmartToy, null,
-                    tint = MaterialTheme.colorScheme.primary) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                navigationIcon = { Icon(Icons.Filled.SmartToy, null, tint = MaterialTheme.colorScheme.primary) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             )
         }
     ) { paddingValues ->
         Column(Modifier.fillMaxSize().padding(paddingValues)) {
-            // Quick question chips
+
+            // Quick question chips — shown only when no messages yet
             if (messages.isEmpty()) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("Mga Mabilis na Tanong:", style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold)
+                    Text("Quick Questions:", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(8.dp))
                     quickQuestions.chunked(2).forEach { row ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            row.forEach { (tl, _) ->
+                            row.forEach { question ->
                                 AssistChip(
-                                    onClick = { viewModel.sendMessage(tl) },
-                                    label = { Text(tl, style = MaterialTheme.typography.bodySmall) },
+                                    onClick = { viewModel.sendMessage(question) },
+                                    label = { Text(question, style = MaterialTheme.typography.bodySmall) },
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -89,9 +85,7 @@ fun AIAssistantScreen(viewModel: AIAssistantViewModel = hiltViewModel()) {
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
-                items(messages) { message ->
-                    ChatBubble(message)
-                }
+                items(messages) { message -> ChatBubble(message) }
                 if (isLoading) {
                     item {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
@@ -99,7 +93,7 @@ fun AIAssistantScreen(viewModel: AIAssistantViewModel = hiltViewModel()) {
                                 Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                                     CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                                     Spacer(Modifier.width(8.dp))
-                                    Text("Flo AI ay nag-iisip...", style = MaterialTheme.typography.bodyMedium)
+                                    Text("Flo AI is thinking…", style = MaterialTheme.typography.bodyMedium)
                                 }
                             }
                         }
@@ -113,7 +107,7 @@ fun AIAssistantScreen(viewModel: AIAssistantViewModel = hiltViewModel()) {
                 }
             }
 
-            // Input row
+            // Message input row
             Surface(shadowElevation = 8.dp) {
                 Row(
                     Modifier.fillMaxWidth().padding(12.dp),
@@ -122,7 +116,7 @@ fun AIAssistantScreen(viewModel: AIAssistantViewModel = hiltViewModel()) {
                     OutlinedTextField(
                         value = inputText,
                         onValueChange = { inputText = it },
-                        placeholder = { Text("Magtanong kay Flo...", style = MaterialTheme.typography.bodyMedium) },
+                        placeholder = { Text("Ask Flo anything…", style = MaterialTheme.typography.bodyMedium) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(24.dp),
                         maxLines = 3
@@ -153,10 +147,7 @@ private fun ChatBubble(message: ChatMessage) {
         horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start
     ) {
         if (!message.isUser) {
-            Box(
-                Modifier.size(32.dp).align(Alignment.Bottom),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(Modifier.size(32.dp).align(Alignment.Bottom), contentAlignment = Alignment.Center) {
                 Text("🌾", style = MaterialTheme.typography.bodyLarge)
             }
             Spacer(Modifier.width(8.dp))
@@ -164,14 +155,12 @@ private fun ChatBubble(message: ChatMessage) {
         Card(
             shape = RoundedCornerShape(
                 topStart = if (message.isUser) 16.dp else 4.dp,
-                topEnd = if (message.isUser) 4.dp else 16.dp,
+                topEnd   = if (message.isUser) 4.dp  else 16.dp,
                 bottomStart = 16.dp, bottomEnd = 16.dp
             ),
             colors = CardDefaults.cardColors(
-                containerColor = if (message.isUser)
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.surfaceVariant
+                containerColor = if (message.isUser) MaterialTheme.colorScheme.primary
+                                 else MaterialTheme.colorScheme.surfaceVariant
             ),
             modifier = Modifier.widthIn(max = 300.dp)
         ) {

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  TAGALOG (tl) strings.
+  Overrides the default English values when the system locale is Tagalog.
+  TODO: Review and verify all translations with a native Tagalog speaker.
+-->
+<resources>
+    <!-- NOTE: app_name intentionally omitted — always "Ani.PH". -->
+
+    <!-- Settings screen -->
+    <string name="settings_title">Mga Setting</string>
+    <string name="settings_language_section">Wika</string>
+    <string name="settings_back">Bumalik</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">Tahanan</string>
+    <string name="nav_weather">Panahon</string>
+    <string name="nav_resibo">Resibo</string>
+    <string name="nav_ai">AI Katulong</string>
+
+    <!-- Home screen – FAB -->
+    <string name="fab_add_crop">Bagong Pananim</string>
+
+    <!-- Home screen – empty state -->
+    <string name="empty_title">Wala pang pananim</string>
+    <string name="empty_subtitle">I-tap ang pindutan sa ibaba para magdagdag ng pananim.</string>
+    <string name="empty_button">Magtanim ngayon</string>
+
+    <!-- Home screen – crop card -->
+    <string name="crop_card_area_suffix"> ha</string>
+    <string name="crop_card_content_desc">Tingnan ang pananim</string>
+</resources>

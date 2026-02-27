@@ -14,6 +14,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.floapp.agriflo.domain.model.CropType
 import com.floapp.agriflo.ui.viewmodel.AddCropViewModel
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,18 +26,20 @@ fun AddCropScreen(
     onCropCreated: () -> Unit,
     viewModel: AddCropViewModel = hiltViewModel()
 ) {
-    var cropName by remember { mutableStateOf("") }
-    var variety by remember { mutableStateOf("") }
-    var landArea by remember { mutableStateOf("") }
+    var cropName         by remember { mutableStateOf("") }
+    var variety          by remember { mutableStateOf("") }
+    var landArea         by remember { mutableStateOf("") }
     var selectedCropType by remember { mutableStateOf(CropType.RICE) }
-    var plantingDateText by remember { mutableStateOf("") }
     var showTypeDropdown by remember { mutableStateOf(false) }
+
+    // Planting date — kept as LocalDate internally, converted to ISO for the ViewModel
+    var plantingDate by remember { mutableStateOf(LocalDate.now()) }
     val isLoading by viewModel.isLoading.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Bagong Pananim", style = MaterialTheme.typography.titleLarge) },
+                title = { Text("New Crop", style = MaterialTheme.typography.titleLarge) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
@@ -44,13 +51,11 @@ fun AddCropScreen(
                 .verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Impormasyon ng Pananim", style = MaterialTheme.typography.titleMedium,
+            Text("Crop Information", style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold)
-            Text("Crop Information", style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
 
-            // Crop type selector (large tiles)
-            Text("Uri ng Pananim (Crop Type):", style = MaterialTheme.typography.bodyLarge)
+            // Crop type selector
+            Text("Crop Type:", style = MaterialTheme.typography.bodyLarge)
             ExposedDropdownMenuBox(
                 expanded = showTypeDropdown,
                 onExpandedChange = { showTypeDropdown = it }
@@ -61,7 +66,7 @@ fun AddCropScreen(
                     readOnly = true,
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showTypeDropdown) },
                     modifier = Modifier.fillMaxWidth().menuAnchor(),
-                    label = { Text("Uri ng Pananim") },
+                    label = { Text("Crop Type") },
                     textStyle = MaterialTheme.typography.bodyLarge
                 )
                 ExposedDropdownMenu(expanded = showTypeDropdown, onDismissRequest = { showTypeDropdown = false }) {
@@ -77,8 +82,8 @@ fun AddCropScreen(
             OutlinedTextField(
                 value = cropName,
                 onValueChange = { cropName = it },
-                label = { Text("Pangalan ng Pananim (Crop Name)") },
-                placeholder = { Text("e.g. Palay sa Bukid") },
+                label = { Text("Crop Name") },
+                placeholder = { Text("e.g. Field Rice") },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = MaterialTheme.typography.bodyLarge
             )
@@ -93,20 +98,17 @@ fun AddCropScreen(
             OutlinedTextField(
                 value = landArea,
                 onValueChange = { landArea = it.filter { c -> c.isDigit() || c == '.' } },
-                label = { Text("Sukat ng Lupa (Land Area, ha)") },
+                label = { Text("Land Area (ha)") },
                 placeholder = { Text("e.g. 0.5") },
                 suffix = { Text("ha") },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = MaterialTheme.typography.bodyLarge
             )
-            OutlinedTextField(
-                value = plantingDateText,
-                onValueChange = { plantingDateText = it },
-                label = { Text("Petsa ng Pagtatanim (Planting Date)") },
-                placeholder = { Text("YYYY-MM-DD") },
-                leadingIcon = { Icon(Icons.Filled.DateRange, null) },
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = MaterialTheme.typography.bodyLarge
+
+            // Planting date field with Material 3 DatePickerDialog
+            PlantingDateField(
+                date = plantingDate,
+                onDateSelected = { plantingDate = it }
             )
 
             Spacer(Modifier.height(8.dp))
@@ -114,12 +116,12 @@ fun AddCropScreen(
             Button(
                 onClick = {
                     viewModel.createCrop(
-                        name = cropName.ifBlank { selectedCropType.displayName },
-                        variety = variety.ifBlank { "Standard" },
-                        cropType = selectedCropType,
-                        landAreaHa = landArea.toDoubleOrNull() ?: 0.5,
-                        plantingDateIso = plantingDateText,
-                        onSuccess = onCropCreated
+                        name           = cropName.ifBlank { selectedCropType.displayName },
+                        variety        = variety.ifBlank { "Standard" },
+                        cropType       = selectedCropType,
+                        landAreaHa     = landArea.toDoubleOrNull() ?: 0.5,
+                        plantingDateIso = plantingDate.toString(), // ISO YYYY-MM-DD
+                        onSuccess      = onCropCreated
                     )
                 },
                 modifier = Modifier.fillMaxWidth().height(64.dp),
@@ -131,9 +133,98 @@ fun AddCropScreen(
                 } else {
                     Icon(Icons.Filled.Agriculture, null, modifier = Modifier.size(28.dp))
                     Spacer(Modifier.width(12.dp))
-                    Text("I-save ang Pananim", style = MaterialTheme.typography.titleMedium)
+                    Text("Save Crop", style = MaterialTheme.typography.titleMedium)
                 }
             }
+        }
+    }
+}
+
+// ── PlantingDateField ──────────────────────────────────────────────────────────
+// Self-contained read-only date picker field. Clicking the calendar icon opens a
+// Material 3 DatePickerDialog defaulted to today.
+
+private val DISPLAY_FORMATTER = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.getDefault())
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PlantingDateField(
+    date: LocalDate,
+    onDateSelected: (LocalDate) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    OutlinedTextField(
+        value          = date.format(DISPLAY_FORMATTER),
+        onValueChange  = {},
+        readOnly       = true,
+        label          = { Text("Planting Date") },
+        leadingIcon    = { Icon(Icons.Filled.DateRange, contentDescription = null) },
+        trailingIcon   = {
+            IconButton(onClick = { showDialog = true }) {
+                Icon(
+                    imageVector        = Icons.Filled.CalendarMonth,
+                    contentDescription = "Pick a date",
+                    tint               = MaterialTheme.colorScheme.primary
+                )
+            }
+        },
+        modifier       = modifier.fillMaxWidth(),
+        textStyle      = MaterialTheme.typography.bodyLarge,
+        colors         = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor   = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+        )
+    )
+
+    if (showDialog) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = date
+                .atStartOfDay(ZoneOffset.UTC)
+                .toInstant()
+                .toEpochMilli()
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { showDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val millis = datePickerState.selectedDateMillis
+                    if (millis != null) {
+                        val selected = Instant
+                            .ofEpochMilli(millis)
+                            .atZone(ZoneOffset.UTC)
+                            .toLocalDate()
+                        onDateSelected(selected)
+                    }
+                    showDialog = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(
+                state  = datePickerState,
+                title  = {
+                    Text("Select Planting Date",
+                        modifier = Modifier.padding(start = 24.dp, top = 16.dp),
+                        style    = MaterialTheme.typography.labelLarge)
+                },
+                headline = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val preview = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneOffset.UTC)
+                            .toLocalDate()
+                            .format(DISPLAY_FORMATTER)
+                        Text(preview,
+                            modifier = Modifier.padding(start = 24.dp, bottom = 12.dp),
+                            style    = MaterialTheme.typography.headlineMedium)
+                    }
+                },
+                showModeToggle = true
+            )
         }
     }
 }

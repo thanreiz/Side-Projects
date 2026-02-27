@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  CEBUANO (ceb) strings — BCP-47 qualifier: b+ceb
+  Overrides the default English values when the system locale is Cebuano.
+  TODO: Review and verify all translations with a native Cebuano speaker.
+-->
+<resources>
+    <!-- NOTE: app_name intentionally omitted — always "Ani.PH". -->
+
+    <!-- Settings screen -->
+    <string name="settings_title">Mga Setting</string>
+    <string name="settings_language_section">Pinulongan</string>
+    <string name="settings_back">Balik</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">Balay</string>
+    <string name="nav_weather">Panahon</string>
+    <string name="nav_resibo">Resibo</string>
+    <string name="nav_ai">AI Katabang</string>
+
+    <!-- Home screen – FAB -->
+    <string name="fab_add_crop">Bag-ong Tanom</string>
+
+    <!-- Home screen – empty state -->
+    <string name="empty_title">Walay tanom pa</string>
+    <string name="empty_subtitle">I-tap ang buton sa ubos aron magdugang og tanom.</string>
+    <string name="empty_button">Magtanom na</string>
+
+    <!-- Home screen – crop card -->
+    <string name="crop_card_area_suffix"> ha</string>
+    <string name="crop_card_content_desc">Tan-awa ang tanom</string>
+</resources>

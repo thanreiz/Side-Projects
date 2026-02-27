@@ -18,15 +18,14 @@ data class CropLog(
 
 enum class LogType(
     val displayNameEn: String,
-    val displayNameTl: String,   // Tagalog
     val iconRes: String          // Reference to drawable resource name
 ) {
-    FERTILIZER("Fertilizer Applied", "Abono", "ic_log_fertilizer"),
-    PEST("Pest Detected", "Peste", "ic_log_pest"),
-    RAINFALL("Rainfall Observed", "Ulan", "ic_log_rainfall"),
-    IRRIGATION("Irrigation Done", "Patubig", "ic_log_irrigation"),
-    HARVEST("Harvest Completed", "Ani", "ic_log_harvest"),
-    PESTICIDE("Pesticide Applied", "Pestisidyo", "ic_log_pesticide"),
-    WEEDING("Weeding Done", "Pagbubukid", "ic_log_weeding"),
-    OTHER("Other Activity", "Iba Pa", "ic_log_other")
+    FERTILIZER("Fertilizer Applied", "ic_log_fertilizer"),
+    PEST("Pest Detected",           "ic_log_pest"),
+    RAINFALL("Rainfall Observed",   "ic_log_rainfall"),
+    IRRIGATION("Irrigation Done",   "ic_log_irrigation"),
+    HARVEST("Harvest Completed",    "ic_log_harvest"),
+    PESTICIDE("Pesticide Applied",  "ic_log_pesticide"),
+    WEEDING("Weeding Done",         "ic_log_weeding"),
+    OTHER("Other Activity",         "ic_log_other")
 }

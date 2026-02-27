@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  KAPAMPANGAN (pam) strings — BCP-47 qualifier: b+pam
+  Overrides the default English values when the system locale is Kapampangan.
+  TODO: Review and verify all translations with a native Kapampangan speaker.
+-->
+<resources>
+    <!-- NOTE: app_name intentionally omitted — always "Ani.PH". -->
+
+    <!-- Settings screen -->
+    <string name="settings_title">Mga Setting</string>
+    <string name="settings_language_section">Amanu</string>
+    <string name="settings_back">Balik</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">Abung</string>
+    <string name="nav_weather">Panahon</string>
+    <string name="nav_resibo">Resibo</string>
+    <string name="nav_ai">AI Katulung</string>
+
+    <!-- Home screen – FAB -->
+    <string name="fab_add_crop">Bayung Tanam</string>
+
+    <!-- Home screen – empty state -->
+    <string name="empty_title">Ala pang tanam</string>
+    <string name="empty_subtitle">I-tap ing button king baba para makadugang ka ning tanam.</string>
+    <string name="empty_button">Magtanam na</string>
+
+    <!-- Home screen – crop card -->
+    <string name="crop_card_area_suffix"> ha</string>
+    <string name="crop_card_content_desc">Lakuan ing tanam</string>
+</resources>

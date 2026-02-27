@@ -40,29 +40,21 @@ class WeatherInterpreter @Inject constructor() {
     fun generateAdvisoryDetail(advisory: WeatherAdvisory, weather: WeatherData): String {
         return when (advisory) {
             WeatherAdvisory.HIGH_RAIN_RISK ->
-                "Expected rainfall: ${weather.rainfallMm.toInt()}mm. Delay fertilizer. Check drainage. " +
-                "Inaasahang ulan: ${weather.rainfallMm.toInt()}mm. Huwag mag-abono. Suriin ang drainage."
+                "Expected rainfall: ${weather.rainfallMm.toInt()} mm. Delay fertilizer application and check drainage."
             WeatherAdvisory.DELAY_FERTILIZATION ->
-                "Light rain expected (${weather.rainfallMm.toInt()}mm). Wait 2–3 days before applying fertilizer. " +
-                "Mahinang ulan inaasahan. Maghintay ng 2–3 araw bago mag-abono."
+                "Light rain expected (${weather.rainfallMm.toInt()} mm). Wait 2–3 days before applying fertilizer."
             WeatherAdvisory.DROUGHT_RISK ->
-                "Very little rain expected. High temperature ${weather.tempMaxC.toInt()}°C. Check irrigation. " +
-                "Kaunting ulan lamang. Mataas na init. Tingnan ang patubig."
+                "Very little rain expected. High temperature ${weather.tempMaxC.toInt()}°C. Check irrigation source."
             WeatherAdvisory.PEST_RISK_HIGH ->
-                "Hot and humid conditions favour pest spread. Inspect your crops today. " +
-                "Mainit at mahalumigmig — pabor sa pagkalat ng peste. Siyasatin ang pananim."
+                "Hot and humid conditions favour pest spread. Inspect your crops today."
             WeatherAdvisory.OPTIMAL_PLANTING_WINDOW ->
-                "Good rain and temperature for planting this week. " +
-                "Magandang ulan at init para sa pagtatanim ngayong linggo."
+                "Good rain and temperature for planting this week."
             WeatherAdvisory.STRONG_WIND_WARNING ->
-                "Strong winds (${weather.windSpeedKph.toInt()} km/h). Secure plants and avoid spraying. " +
-                "Malakas na hangin. I-secure ang mga pananim. Huwag mag-spray."
+                "Strong winds (${weather.windSpeedKph.toInt()} km/h). Secure plants and avoid pesticide spraying."
             WeatherAdvisory.FROST_RISK ->
-                "Cold temperatures (${weather.tempMinC.toInt()}°C min). Protect seedlings from cold stress. " +
-                "Malamig (${weather.tempMinC.toInt()}°C). Protektahan ang mga punla."
+                "Cold temperatures (${weather.tempMinC.toInt()}°C min). Protect seedlings from cold stress."
             WeatherAdvisory.OPTIMAL_CONDITIONS ->
-                "Good weather for farming activities. Continue regular schedule. " +
-                "Magandang panahon para sa pagsasaka. Ituloy ang regular na gawain."
+                "Good weather for farming activities. Continue your regular schedule."
         }
     }
 
