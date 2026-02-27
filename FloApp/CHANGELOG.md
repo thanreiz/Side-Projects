@@ -4,6 +4,217 @@ All notable changes to this project are documented here, in reverse-chronologica
 
 ---
 
+## [1.0.1] — 2026-02-27 · WeatherScreen Bug Fixes
+
+### Goal
+Fix four issues discovered after the v1.0.0 WeatherScreen polish: stale-row date
+duplication in the 7-day forecast, incorrect compressed-header alignment and sizing,
+missing physical header compression, and the refresh button needing to be icon-only.
+
+---
+
+### Files Changed
+
+| File | What Changed |
+|---|---|
+| `data/local/entity/WeatherCacheEntity.kt` | Changed PK to stable string — see Bug 5 |
+| `data/local/dao/WeatherCacheDao.kt` | Fixed `get7DayForecast()` — see Bug 1 |
+| `data/repository/WeatherRepositoryImpl.kt` | Fixed row insertion stability — see Bug 5 |
+| `data/remote/mock/WeatherMockDataGenerator.kt` | Fixed mock row insertion stability — see Bug 5 |
+| `ui/screens/WeatherScreen.kt` | Fixed `WeatherHeader` and refresh FAB — see Bugs 2–4, 6 |
+
+---
+
+### Bug Fixes
+
+#### Bug 1 — 7-Day Forecast Showed Duplicate / Stale Dates
+**Root cause**: `get7DayForecast()` queried `SELECT * … ORDER BY date ASC LIMIT 7`
+with no date filter. If the Room database contained `DAILY_FORECAST` rows from a
+previous day's session they would fill the first slots in the 7-result window before
+today's rows, causing repeated dates.
+
+**Fix**: Added `AND date >= :today` to the query. The parameter defaults to
+`LocalDate.now().toString()` so callers need no changes.
+
+```sql
+-- Before
+SELECT * FROM weather_cache WHERE forecastType = 'DAILY_FORECAST'
+ORDER BY date ASC LIMIT 7
+
+-- After
+SELECT * FROM weather_cache
+WHERE forecastType = 'DAILY_FORECAST' AND date >= :today
+ORDER BY date ASC LIMIT 7
+```
+
+#### Bug 2 — Compressed Header: Wrong Title/Location Alignment
+**Root cause**: The compressed state had location on the left and title on the right — the
+opposite of the intended layout.
+
+**Fix**: Swapped the two `Text` composables so **"Weather"** is on the left and the
+**location** is on the right. Added `padding(horizontal = 4.dp)` to the `Row` to keep
+text off the screen edges.
+
+#### Bug 3 — Header Did Not Physically Shrink on Scroll
+**Root cause**: `WeatherHeader` only swapped text positions; the `TopAppBar` height was
+unchanged, producing no visual compression effect.
+
+**Fix**: Added `animateDpAsState(targetValue = if (isScrolled) 48.dp else 64.dp,
+tween(250))` and applied the animated value to `Modifier.height(headerHeight)` on the
+`TopAppBar`. The title also shifts from `titleLarge` (expanded) to `titleSmall`
+(compressed) for a more compact feel.
+
+#### Bug 4 — Refresh Button Was Rectangular With Text
+**Root cause**: The "Refresh" button from v1.0.0 used a `Button` with a rectangular
+`RoundedCornerShape(12.dp)` and included text labels.
+
+**Fix**: Replaced with a `FloatingActionButton` using `CircleShape` — icon-only,
+matching the compact style requested. Container colour transitions to `FloGreen200`
+while loading (disabled state).
+
+#### Bug 5 — Data Stability: Forecast "Shrinking" on Refresh
+**Root cause**: Every time the app parsed new API data or generated mock data, it assigned
+a `UUID.randomUUID()` to the `id` field of the `WeatherCacheEntity`. Room's `REPLACE`
+strategy relies on the primary key to know which row to overwrite. Because every insert
+had a brand new UUID, Room never overwrote anything — it just added new duplicate rows
+next to the old ones. The `.distinctBy { it.date }.take(7)` safety net then filtered these
+un-ordered duplicates, resulting in missing days in the UI. Over-aggressive seed guards
+(`getForecastCount() == 0` instead of counting only current rows) compounded the issue by
+suppressing mock regeneration.
+
+**Fix**:
+1. Changed `WeatherCacheEntity.id` from a random UUID to a stable composite string:
+`"${forecastType}_$date"` (e.g. `"DAILY_FORECAST_2026-02-27"`).
+2. Updated `WeatherRepositoryImpl.kt` and `WeatherMockDataGenerator.kt` to use this
+stable key so Room's `REPLACE` correctly updates the row in-place.
+3. Fixed `seedMockDataIfEmpty()` to purge expired rows first, then count only current/future
+rows before deciding whether to re-seed.
+4. Fixed the expiration threshold in `refreshWeather()` to `LocalDate.now()` so today's
+row is not deleted prematurely.
+
+#### Bug 6 — Compressed Header Text Clipped at Bottom
+**Root cause**: The `48.dp` compressed height left no room for vertical padding,
+leaving the "Weather" and "📍 Location" text visually resting directly on the bottom edge.
+
+**Fix**: Increased `compressedHeight` to `60.dp` and widened horizontal padding to `16.dp`.
+Added `padding(vertical = 8.dp)` to the compressed `Row` to give the text proper breathing
+room from the header's bounds while maintaining the Left/Right alignment.
+
+---
+
+## [1.0.0] — 2026-02-27 · WeatherScreen UI Enhancements
+
+### Goal
+Polish the Weather screen with six UX improvements: quick scroll navigation,
+improved date readability, contextual today/tomorrow highlights,
+a purpose-built refresh button, and a space-efficient compressed header.
+
+---
+
+### Files Changed
+
+#### 🖥️ UI Screens
+| File | What Changed |
+|---|---|
+| `ui/screens/WeatherScreen.kt` | All 6 enhancements applied — see details below |
+
+---
+
+### Feature Details
+
+#### 1. Scroll-to-Top Button
+- Added `rememberLazyListState()` shared across both tabs.
+- An `AnimatedVisibility` `SmallFloatingActionButton` (↑ `KeyboardArrowUp`, `FloGreen700`) appears at `TopCenter` once `firstVisibleItemIndex > 0`.
+- Tapping it triggers `listState.animateScrollToItem(0)` via a coroutine scope.
+- Tab switches automatically reset scroll position to 0.
+
+#### 2. 7-Day Forecast Date Formatting
+- Replaced the raw `"YYYY-MM-DD"` string with a two-part `Row`:
+  - **Day name** (e.g. `"Monday"`) in bold default text color.
+  - **Month + day** (e.g. `"February 27"`) at 45% opacity to de-emphasize it.
+- Helper: `formatForecastDate(iso) → Pair(dayName, monthDay)` using `DateTimeFormatter`.
+
+#### 3. 30-Day Climatology Date Formatting
+- Date label changed from `"YYYY-MM-DD"` to `"MMMM d, yyyy"` (e.g. `"February 28, 2026"`).
+- Helper: `formatClimatologyDate(iso) → String`.
+
+#### 4. Today / Tomorrow Highlights
+- `dayLabel(iso)` compares each card's date against `LocalDate.now()`.
+- Matching cards receive:
+  - A `2.dp FloGreen500` border via `Modifier.border(...)` on the `ElevatedCard`.
+  - A slightly lighter `FloGreen100` background gradient (was `FloGreen50` / `FloBlue50`).
+  - A small `"Today"` / `"Tomorrow"` chip (`FloGreen100` background, `FloGreen700` bold text) above the day name.
+- Works identically on both the 7-day and 30-day lists.
+
+#### 5. Custom Refresh Button
+- Removed the refresh `IconButton` and loading `CircularProgressIndicator` from the `TopAppBar` actions block entirely.
+- Added a dark-green `Button` pinned to `BottomEnd` of the screen:
+  - `containerColor = FloGreen700`, `shape = RoundedCornerShape(12.dp)` (beveled).
+  - Shows `Icon(Refresh)` + `Text("Refresh")` when idle.
+  - Shows an inline `CircularProgressIndicator(18.dp)` + `Text("Refreshing…")` while loading.
+  - Disabled (greyed to `FloGreen200`) while a refresh is in progress.
+
+#### 6. Sticky Compressed Header
+- `TopAppBar` replaced by a private `WeatherHeader(isScrolled)` composable.
+- **Expanded** (`firstVisibleItemIndex == 0`): `"Weather"` title stacked above `"📍 location"` — same as before.
+- **Compressed** (`firstVisibleItemIndex > 0`): single `Row` with `Arrangement.SpaceBetween` — location string moves to the **left**, `"Weather"` title moves to the **right**.
+- `containerColor = FloGreen100` is unchanged in both states.
+
+---
+
+### New Imports Added
+| Import | Purpose |
+|---|---|
+| `androidx.compose.animation.AnimatedVisibility` | Scroll-to-top button show/hide |
+| `androidx.compose.animation.fadeIn/Out, scaleIn/Out` | Button enter/exit animation |
+| `androidx.compose.foundation.border` | Today/Tomorrow card border |
+| `androidx.compose.foundation.lazy.rememberLazyListState` | Shared list scroll state |
+| `kotlinx.coroutines.launch` | Animate scroll to top |
+| `java.time.LocalDate` / `java.time.format.DateTimeFormatter` | Date parsing and formatting |
+| `java.util.Locale` | English locale for date formatter |
+
+---
+
+## [0.9.0] — 2026-02-27 · Windows Build Infrastructure & GPS Location Fix
+
+### Goal
+Two independent fixes applied in the same session:
+
+1. **Windows build infrastructure** — the project was missing `gradlew.bat` (the Windows
+   Gradle wrapper) and `local.properties` (Android SDK path). Without these, no Gradle
+   command could be run on Windows at all. Both files were created so the project can
+   be built, installed, and launched from the command line on Windows without Android Studio.
+
+2. **Stale GPS location fix** — the Weather screen was always showing forecast data for
+   **Mountain View, California** (Google's HQ) instead of the device's actual location.
+   The root cause was that `FusedLocationProviderClient.lastLocation` returns a
+   system-level cached fix that Android emulators seed with California coordinates by
+   default. This cache persists across app reinstalls because it is owned by Google Play
+   Services, not the app. The fix reorders the location strategy so a **fresh one-shot
+   GPS fix** is always attempted first, bypassing the stale cache.
+
+---
+
+### New Files
+| File | Purpose |
+|---|---|
+| `gradlew.bat` | Standard Windows Gradle wrapper batch script — was missing from the repository; required to run any `.\gradlew.bat` command on Windows |
+| `local.properties` | Gradle SDK path file; sets `sdk.dir=C:\Users\User\AppData\Local\Android\Sdk` so the build system can locate the Android SDK |
+
+### Modified Files
+| File | What Changed |
+|---|---|
+| `ui/viewmodel/WeatherViewModel.kt` | Rewrote `getBestLocation()`: now requests a **fresh one-shot high-accuracy fix** (5-second `withTimeoutOrNull` window) **before** falling back to `lastLocation`. Previously, `lastLocation` was tried first — returning the emulator's stale California cache — with a fresh request only as a fallback. The new order ensures the emulator's Extended Controls location is always used when it is available. Added `kotlinx.coroutines.withTimeoutOrNull` import. |
+
+### Why Reinstalling the App Did Not Fix the Location
+The `lastLocation` cache is stored inside **Google Play Services** (`com.google.android.gms`),
+a system-level process that is completely independent of the app. Uninstalling and reinstalling
+`com.floapp.agriflo` has no effect on Play Services' cache. Only requesting a live
+`requestLocationUpdates` fix (or rebooting the emulator after setting a new GPS location in
+Extended Controls) clears the stale value.
+
+---
+
 ## [0.8.0] — 2026-02-27 · Full English-Only UI Translation
 
 ### Goal

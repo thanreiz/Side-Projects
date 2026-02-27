@@ -15,8 +15,8 @@ interface WeatherCacheDao {
 
     // ── 7-Day Forecast ────────────────────────────────────────────────────────
 
-    @Query("SELECT * FROM weather_cache WHERE forecastType = 'DAILY_FORECAST' ORDER BY date ASC LIMIT 7")
-    fun get7DayForecast(): Flow<List<WeatherCacheEntity>>
+    @Query("SELECT * FROM weather_cache WHERE forecastType = 'DAILY_FORECAST' AND date >= :today ORDER BY date ASC LIMIT 7")
+    fun get7DayForecast(today: String): Flow<List<WeatherCacheEntity>>
 
     @Query("SELECT * FROM weather_cache WHERE date = :date AND forecastType = 'DAILY_FORECAST' LIMIT 1")
     suspend fun getWeatherForDate(date: String): WeatherCacheEntity?

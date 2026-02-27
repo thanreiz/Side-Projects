@@ -5,7 +5,6 @@ import com.floapp.agriflo.domain.engine.WeatherInterpreter
 import com.floapp.agriflo.domain.model.WeatherAdvisory
 import com.floapp.agriflo.domain.model.WeatherData
 import java.time.LocalDate
-import java.util.UUID
 import kotlin.math.sin
 
 /**
@@ -63,7 +62,7 @@ object WeatherMockDataGenerator {
             val detail   = weatherInterpreter.generateAdvisoryDetail(advisory, stub)
 
             WeatherCacheEntity(
-                id             = UUID.randomUUID().toString(),
+                id             = "CLIMATOLOGY_${date}",
                 date           = date.toString(),
                 tempMinC       = String.format("%.1f", tempMin).toDouble(),
                 tempMaxC       = String.format("%.1f", tempMax).toDouble(),
@@ -115,7 +114,7 @@ object WeatherMockDataGenerator {
             val detail   = weatherInterpreter.generateAdvisoryDetail(advisory, stub)
 
             WeatherCacheEntity(
-                id             = UUID.randomUUID().toString(),
+                id             = "DAILY_FORECAST_${date}",
                 date           = date.toString(),
                 tempMinC       = String.format("%.1f", tempMin).toDouble(),
                 tempMaxC       = String.format("%.1f", tempMax).toDouble(),
