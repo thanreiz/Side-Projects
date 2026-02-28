@@ -4,6 +4,137 @@ All notable changes to this project are documented here, in reverse-chronologica
 
 ---
 
+## [1.2.0] — 2026-02-28 · UI/UX Polish — Navigation, Headers & Cards
+
+### Goal
+A set of styling and layout refinements across the Land Data and Weather tabs to
+improve visual consistency with the rest of the application.
+
+---
+
+### Files Changed
+
+| File | What Changed |
+|---|---|
+| `ui/navigation/FloDestination.kt` | Reordered `bottomNavItems` to: Receipt → Weather → Home → AI Assistant → Land Data |
+| `ui/screens/WeatherScreen.kt` | Fixed compressed header — `titleLarge` font (matching other tabs), `FastOutSlowInEasing` animation, natural height in expanded state |
+| `ui/screens/LandDataScreen.kt` | Same header fixes as Weather; card padding tightened; summary card copy simplified |
+
+---
+
+### Changes in Detail
+
+#### 1. Navigation Tab Reorder (`FloDestination.kt`)
+New bottom nav order: **Receipt → Weather → Home → AI Assistant → Land Data**
+
+#### 2. Header Animation & Font (`WeatherScreen.kt`, `LandDataScreen.kt`)
+- Font restored to `titleLarge`/bold in both expanded and compressed states —
+  matching the `titleLarge` used by Home, Resibo, and AI Assistant headers.
+- Expanded state no longer applies `Modifier.height(...)` — the `TopAppBar` uses
+  its natural Material3 height and built-in internal padding, eliminating the
+  flush-against-edge look.
+- Compressed state still constrains height to `56dp` via `animateDpAsState`
+  with `FastOutSlowInEasing` (300 ms) for a fluid, non-jerky transition.
+
+#### 3. Land Data Card Padding (`LandDataScreen.kt`)
+- `SoilProfileCard` and `FertilizerGuidelineCard` inner `Column` padding changed
+  from `padding(16.dp)` (all sides equal) to
+  `padding(horizontal = 16.dp, vertical = 14.dp)` — removes the excess bottom
+  gap while keeping left/right symmetry.
+- Removed a redundant `Spacer(8.dp)` before the source attribution in
+  fertilizer cards.
+
+#### 4. Summary Card Copy (`LandDataScreen.kt`)
+| Before | After |
+|---|---|
+| `"🌾 Crops that will PROSPER here"` | `"🌾 Ideal crops"` |
+| `"⚠ Crops that will STRUGGLE here"` | `"⚠ Unsuitable crops"` |
+
+---
+
+## [1.1.0] — 2026-02-28 · Land Analysis Tab (Land Data)
+
+### Goal
+Implement the **Land Analysis** feature by adding a 5th tab — **Land Data** — to the
+bottom navigation bar. The tab displays soil composition data, layman-friendly
+explanations, beneficial crop lists, and fertilizer guidelines for the user's
+current GPS location. Mock data is seeded from BSWM (Bureau of Soils and Water
+Management) official maps and downloadable guides, focused on the **Nueva Ecija**
+region of the Philippines.
+
+---
+
+### New Files
+
+| File | Layer | Purpose |
+|---|---|---|
+| `domain/model/LandData.kt` | Domain | Data model containing `LandData`, `SoilProfile`, and `FertilizerGuideline` data classes |
+| `data/remote/mock/LandDataMockGenerator.kt` | Data | BSWM-sourced mock data for 5 Nueva Ecija sub-regions (Cabanatuan, Muñoz, Palayan, Gapan, San Jose); exposes `getAvailableRegions()`, `getDataForRegion()`, and `getDefaultGpsData()` |
+| `ui/viewmodel/LandDataViewModel.kt` | UI | Sealed `LandDataUiState` (Loading / Downloading / Success / Error); GPS location seeding; simulated async region download with animated progress |
+| `ui/screens/LandDataScreen.kt` | UI | Full composable screen with crop summary card, soil profile card stack, fertilizer guideline cards, region-change warning dialog, and region picker dialog |
+
+### Modified Files
+
+| File | What Changed |
+|---|---|
+| `ui/navigation/FloDestination.kt` | Added `object LandData : FloDestination("land_data")`; added `BottomNavItem` entry with `Icons.Filled.Landscape` icon and all 4-language labels |
+| `ui/navigation/FloNavGraph.kt` | Added `navLandData` to the `navLabels` map; added `composable(FloDestination.LandData.route) { LandDataScreen() }` to the `NavHost` |
+| `ui/theme/AppStrings.kt` | Added `navLandData` property to the `AppStrings` data class and all 4 language instances: EN `"Land Data"`, TL `"Lupain"`, CEB `"Yuta"`, KAP `"Lupa"` |
+
+---
+
+### Feature Details
+
+#### Data Layer — BSWM Mock Data
+Each of the 5 sub-regions contains:
+- Named BSWM soil series (e.g., Abnam Loam Clay, Quingua Silt Loam, Lipa Clay)
+- Sand / Silt / Clay percentages, pH value + rating, and organic matter level
+- Coverage percentage per soil type in the sub-region
+- Seasonal fertilizer recommendations (Wet / Dry) per crop with N, P, K, and Zn kg/ha amounts
+- Application schedule notes and BSWM/IRRI/DA source attribution
+
+#### ViewModel — `LandDataUiState` sealed interface
+| State | When shown |
+|---|---|
+| `Loading` | On first launch while GPS is being acquired |
+| `Downloading(regionName, progressFraction)` | After the user selects a new region |
+| `Success(data)` | Data is ready to display |
+| `Error(message)` | Location/network failure (auto-recovers to default data) |
+
+The ViewModel mirrors `WeatherViewModel`'s GPS strategy: fresh one-shot location request
+(5-second timeout) before falling back to `lastLocation`, then Geocoder for a readable
+place name.
+
+#### Screen Layout
+
+1. **Crop Summary Card** — Top-level overview of all crops that will **prosper** or
+   **struggle** across the region's soils, shown as color-coded chips
+   (green = good, gold = poor).
+
+2. **Soil Profile Cards** — One `ElevatedCard` per soil type with:
+   - Animated horizontal composition bar (Sand 🟡 / Silt 🟢 / Clay 🟤)
+   - pH pill and Organic Matter pill
+   - **"In Simple Terms"** layman explanation block (💬 quote card)
+   - Good crops / Crops to Avoid chip rows
+   - "Dominant Soil" badge on the first card
+
+3. **Fertilizer Guideline Cards** — One per crop/season pair with:
+   - Element badges for N, P, K, Zn with color-coded backgrounds
+   - Application schedule notes
+   - Source attribution footer
+
+4. **Scroll-to-top FAB** — Same `KeyboardArrowUp` pattern as WeatherScreen
+
+#### Region Change Flow
+1. User taps the 🗺 map icon in the top-right of the header
+2. **Warning dialog fires immediately**: *"Changing regions will download extra data from
+   the internet. An active internet connection is required."*
+3. If **Proceed** → Region picker dialog lists the 5 Nueva Ecija sub-regions
+4. Selecting a region triggers a simulated download with an animated `LinearProgressIndicator`
+   (~1.2 s at 60 ms / step) before the new data is displayed
+
+---
+
 ## [1.0.1] — 2026-02-27 · WeatherScreen Bug Fixes
 
 ### Goal

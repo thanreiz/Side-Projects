@@ -18,6 +18,7 @@ sealed class FloDestination(val route: String) {
     }
     object DigitalResibo : FloDestination("digital_resibo")
     object AIAssistant : FloDestination("ai_assistant")
+    object LandData : FloDestination("land_data")
     object AddCrop : FloDestination("add_crop")
     object Settings : FloDestination("settings")
 }
@@ -30,8 +31,9 @@ data class BottomNavItem(
 )
 
 val bottomNavItems = listOf(
-    BottomNavItem(FloDestination.Home, Icons.Filled.Home, "Home", "Tahanan"),
-    BottomNavItem(FloDestination.Weather, Icons.Filled.Cloud, "Weather", "Panahon"),
     BottomNavItem(FloDestination.DigitalResibo, Icons.Filled.Receipt, "Resibo", "Resibo"),
-    BottomNavItem(FloDestination.AIAssistant, Icons.Filled.SmartToy, "Flo AI", "Flo AI")
+    BottomNavItem(FloDestination.Weather, Icons.Filled.Cloud, "Weather", "Panahon"),
+    BottomNavItem(FloDestination.Home, Icons.Filled.Home, "Home", "Tahanan"),
+    BottomNavItem(FloDestination.AIAssistant, Icons.Filled.SmartToy, "Flo AI", "Flo AI"),
+    BottomNavItem(FloDestination.LandData, Icons.Filled.Landscape, "Land Data", "Lupain")
 )

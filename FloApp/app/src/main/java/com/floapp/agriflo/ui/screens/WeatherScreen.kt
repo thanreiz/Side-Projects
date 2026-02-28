@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -255,22 +256,20 @@ fun WeatherScreen(viewModel: WeatherViewModel = hiltViewModel()) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WeatherHeader(locationName: String?, isScrolled: Boolean) {
-    // Animate down to 48dp when scrolled; leave unconstrained (natural) when expanded.
+    // Only constrain height when compressed; expanded state uses TopAppBar's
+    // natural height (with built-in internal padding) to match other tabs.
     val compressedHeight by animateDpAsState(
-        targetValue   = if (isScrolled) 60.dp else 64.dp,
-        animationSpec = tween(250),
-        label         = "headerHeight"
+        targetValue   = 56.dp,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+        label         = "weatherHeaderHeight"
     )
 
     TopAppBar(
-        // Only constrain height in the compressed state — in the expanded state
-        // we let the TopAppBar use its natural height so titleLarge + the location
-        // subtitle have enough vertical breathing room (matching other screens).
         modifier = if (isScrolled) Modifier.height(compressedHeight) else Modifier,
         colors   = TopAppBarDefaults.topAppBarColors(containerColor = FloGreen100),
         title = {
             if (!isScrolled) {
-                // Expanded: title stacked above location, standard left-align
+                // Expanded: title stacked above location
                 Column {
                     Text(
                         "Weather",
@@ -287,17 +286,17 @@ private fun WeatherHeader(locationName: String?, isScrolled: Boolean) {
                     }
                 }
             } else {
-                // Compressed: "Weather" on LEFT, location on RIGHT, vertically centred
+                // Compressed: "Weather" left, location right
                 Row(
                     modifier              = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Text(
                         "Weather",
-                        style      = MaterialTheme.typography.titleSmall,
+                        style      = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                     locationName?.let {

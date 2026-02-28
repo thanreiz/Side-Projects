@@ -58,7 +58,8 @@ fun FloNavGraph(
             FloDestination.Home.route          to str.navHome,
             FloDestination.Weather.route       to str.navWeather,
             FloDestination.DigitalResibo.route to str.navResibo,
-            FloDestination.AIAssistant.route   to str.navAI
+            FloDestination.AIAssistant.route   to str.navAI,
+            FloDestination.LandData.route      to str.navLandData
         )
 
         Scaffold(
@@ -141,6 +142,9 @@ fun FloNavGraph(
                 }
                 composable(FloDestination.AIAssistant.route) {
                     AIAssistantScreen()
+                }
+                composable(FloDestination.LandData.route) {
+                    LandDataScreen()
                 }
             }
         }
