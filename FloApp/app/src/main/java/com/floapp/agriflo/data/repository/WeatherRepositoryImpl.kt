@@ -46,7 +46,14 @@ class WeatherRepositoryImpl @Inject constructor(
     // ── 7-Day Forecast ────────────────────────────────────────────────────────
 
     override fun get7DayForecast(): Flow<List<WeatherData>> =
-        weatherCacheDao.get7DayForecast().map { it.map { e -> e.toDomain() } }
+        // Pass today explicitly — Room's annotation processor ignores Kotlin default values,
+        // so the date must be supplied at the call site or the :today bind will be invalid.
+        weatherCacheDao.get7DayForecast(LocalDate.now().toString())
+            .map { rows ->
+                rows.distinctBy { it.date }   // safety net: deduplicate by date
+                    .take(7)
+                    .map { e -> e.toDomain() }
+            }
 
     override suspend fun getWeatherForDate(date: String): WeatherData? =
         weatherCacheDao.getWeatherForDate(date)?.toDomain()
@@ -72,7 +79,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 "DAILY_FORECAST"
             )
             weatherCacheDao.insertOrReplaceAll(entities)
-            weatherCacheDao.deleteExpiredForecasts(LocalDate.now().minusDays(1).toString())
+            weatherCacheDao.deleteExpiredForecasts(LocalDate.now().toString())
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)   // caller (ViewModel) surfaces error to UI if needed
@@ -139,7 +146,7 @@ class WeatherRepositoryImpl @Inject constructor(
                     val advisory = weatherInterpreter.interpret(stub)
                     val detail   = weatherInterpreter.generateAdvisoryDetail(advisory, stub)
                     WeatherCacheEntity(
-                        id            = UUID.randomUUID().toString(),
+                        id            = "CLIMATOLOGY_$date",
                         date          = date,
                         tempMinC      = tempMin,
                         tempMaxC      = tempMax,
@@ -171,8 +178,11 @@ class WeatherRepositoryImpl @Inject constructor(
      * Real API data overwrites the mocks via REPLACE when it arrives.
      */
     override suspend fun seedMockDataIfEmpty() {
-        // 7-day forecast
-        if (weatherCacheDao.getForecastCount() == 0) {
+        val today = LocalDate.now().toString()
+
+        // 7-day forecast — purge stale rows first, then re-seed if fewer than 7 current rows remain
+        weatherCacheDao.deleteExpiredForecasts(today)
+        if (weatherCacheDao.getForecastCount() < 7) {
             val mockForecast = WeatherMockDataGenerator.generate7DayForecast(weatherInterpreter)
             weatherCacheDao.insertOrReplaceAll(mockForecast)
         }
@@ -210,7 +220,7 @@ class WeatherRepositoryImpl @Inject constructor(
         val advisory = weatherInterpreter.interpret(stub)
         val detail   = weatherInterpreter.generateAdvisoryDetail(advisory, stub)
         WeatherCacheEntity(
-            id            = UUID.randomUUID().toString(),
+            id            = "${forecastType}_$date",
             date          = date,
             tempMinC      = tempMin,
             tempMaxC      = tempMax,

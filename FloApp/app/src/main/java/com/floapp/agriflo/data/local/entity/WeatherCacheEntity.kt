@@ -14,7 +14,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "weather_cache")
 data class WeatherCacheEntity(
     @PrimaryKey
-    val id: String,                          // UUID
+    val id: String,                          // Stable key: "${forecastType}_${date}"
     val date: String,                        // ISO date: "2026-02-24"
     val tempMinC: Double,
     val tempMaxC: Double,

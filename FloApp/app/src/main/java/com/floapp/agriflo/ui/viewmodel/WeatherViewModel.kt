@@ -16,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -101,25 +102,32 @@ class WeatherViewModel @Inject constructor(
 
     @SuppressLint("MissingPermission")
     private suspend fun getBestLocation(): Location? {
-        val last = suspendCancellableCoroutine<Location?> { cont ->
+        // Request a fresh one-shot fix first (5-second timeout).
+        // This bypasses the Play Services cache which can hold a stale location
+        // (e.g. the emulator default of Mountain View, California) even after
+        // the emulator's GPS coordinates are changed in Extended Controls.
+        val fresh = withTimeoutOrNull(5_000L) {
+            suspendCancellableCoroutine { cont ->
+                val req = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 0)
+                    .setMaxUpdates(1)
+                    .build()
+                val cb = object : LocationCallback() {
+                    override fun onLocationResult(result: LocationResult) {
+                        fusedClient.removeLocationUpdates(this)
+                        cont.resume(result.lastLocation)
+                    }
+                }
+                fusedClient.requestLocationUpdates(req, cb, Looper.getMainLooper())
+                cont.invokeOnCancellation { fusedClient.removeLocationUpdates(cb) }
+            }
+        }
+        if (fresh != null) return fresh
+
+        // Fall back to lastLocation if a fresh fix timed out
+        return suspendCancellableCoroutine { cont ->
             fusedClient.lastLocation
                 .addOnSuccessListener { cont.resume(it) }
                 .addOnFailureListener { cont.resume(null) }
-        }
-        if (last != null) return last
-
-        return suspendCancellableCoroutine { cont ->
-            val req = LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 0)
-                .setMaxUpdates(1)
-                .build()
-            val cb = object : LocationCallback() {
-                override fun onLocationResult(result: LocationResult) {
-                    fusedClient.removeLocationUpdates(this)
-                    cont.resume(result.lastLocation)
-                }
-            }
-            fusedClient.requestLocationUpdates(req, cb, Looper.getMainLooper())
-            cont.invokeOnCancellation { fusedClient.removeLocationUpdates(cb) }
         }
     }
 

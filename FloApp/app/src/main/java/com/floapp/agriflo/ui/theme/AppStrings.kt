@@ -24,6 +24,7 @@ data class AppStrings(
     val navWeather: String,
     val navResibo: String,
     val navAI: String,
+    val navLandData: String,
 
     // ── Home – FAB ─────────────────────────────────────────────────────────────
     val fabAddCrop: String,
@@ -51,6 +52,7 @@ val EnglishStrings = AppStrings(
     navWeather  = "Weather",
     navResibo   = "Receipt",
     navAI       = "AI Assistant",
+    navLandData = "Land Data",
 
     fabAddCrop  = "New Crop",
 
@@ -75,6 +77,7 @@ val TagalogStrings = AppStrings(
     navWeather  = "Panahon",
     navResibo   = "Resibo",
     navAI       = "AI Katulong",
+    navLandData = "Lupain",
 
     fabAddCrop  = "Bagong Pananim",
 
@@ -100,6 +103,7 @@ val CebuanoStrings = AppStrings(
     navWeather  = "Panahon",
     navResibo   = "Resibo",
     navAI       = "AI Katabang",
+    navLandData = "Yuta",
 
     fabAddCrop  = "Bag-ong Tanom",
 
@@ -125,6 +129,7 @@ val KapampanganStrings = AppStrings(
     navWeather  = "Panahon",
     navResibo   = "Resibo",
     navAI       = "AI Katulung",
+    navLandData = "Lupa",
 
     fabAddCrop  = "Bayung Tanam",
 
